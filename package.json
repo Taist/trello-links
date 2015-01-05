@@ -1,0 +1,13 @@
+{
+  "name": "taist-nimble-deal-custom-fields",
+  "version": "0.0.1",
+  "author": "Vladimir Rybakov",
+  "description": "Custom fields for Nimble deal",
+  "dependencies": {
+    "browserify": "~4.1.5",
+    "grunt": "~0.4.0",
+    "grunt-browserify": "*",
+    "grunt-contrib-concat": "*",
+    "grunt-contrib-coffee": "*"
+  }
+}

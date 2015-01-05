@@ -1,0 +1,5 @@
+{
+  "id": "taist-nimble-deal-custom-fields",
+  "js": "addon.js",
+  "siteRegexp": "*.nimble.com"
+}
