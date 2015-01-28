@@ -1,5 +1,8 @@
 {
-  "id": "taist-nimble-deal-custom-fields",
+  "id": "taist-bootstrap",
+  "title": "Taist Botstrap",
+  "siteName": "Google",
   "js": "addon.js",
-  "siteRegexp": "*.nimble.com"
+  "shortDescription": "Sample project for tai.st addon",
+  "siteRegexp": "google.ru"
 }

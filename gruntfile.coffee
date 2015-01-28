@@ -3,6 +3,8 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks "grunt-contrib-concat"
   grunt.loadNpmTasks "grunt-browserify"
   grunt.loadNpmTasks "grunt-contrib-coffee"
+  grunt.loadNpmTasks 'grunt-contrib-watch'
+
 
   grunt.initConfig
     pkg: grunt.file.readJSON("package.json")
@@ -39,9 +41,19 @@ module.exports = (grunt) ->
         ]
         dest: "dist/addon.js"
 
+    watch:
+      files: ['src/js/**/*.coffee']
+      tasks: ['build']
+
   grunt.registerTask "default", [
+    "build"
+    "watch"
+  ]
+
+  grunt.registerTask "build", [
     "coffee:addon"
     "browserify:addon"
     "concat:addon"
   ]
+
   return

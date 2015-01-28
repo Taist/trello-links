@@ -9,7 +9,13 @@ var addonEntry;
 addonEntry = {
   start: function(_taistApi, entryPoint) {
     _taistApi.log('Addon started');
-    return require('./greetings/hello')(_taistApi);
+    require('./greetings/hello')(_taistApi);
+    _taistApi.companyData.set('key', 'value ' + new Date, function() {
+      return console.log('company data saved');
+    });
+    return _taistApi.companyData.get('key', function(a, b) {
+      return console.log('received from the server', a, b);
+    });
   }
 };
 
