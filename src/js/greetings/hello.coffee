@@ -1,2 +1,2 @@
 module.exports = (api) ->
-  api.log 'Hello world'
+  api.log 'Hello world! ' + require './greetingsText'

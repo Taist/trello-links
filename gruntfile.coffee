@@ -1,6 +1,7 @@
 #global module:false
 module.exports = (grunt) ->
   grunt.loadNpmTasks "grunt-contrib-concat"
+  grunt.loadNpmTasks "grunt-contrib-copy"
   grunt.loadNpmTasks "grunt-browserify"
   grunt.loadNpmTasks "grunt-contrib-coffee"
   grunt.loadNpmTasks 'grunt-contrib-watch'
@@ -18,6 +19,13 @@ module.exports = (grunt) ->
         ext: '.js'
         options:
           bare: true
+
+    copy:
+      addon:
+        expand: true
+        cwd: 'src/'
+        src: ['**/*.js']
+        dest: 'build'
 
     browserify:
       addon:
@@ -42,7 +50,7 @@ module.exports = (grunt) ->
         dest: "dist/addon.js"
 
     watch:
-      files: ['src/js/**/*.coffee']
+      files: ['src/js/**/*.js', 'src/js/**/*.coffee']
       tasks: ['build']
 
   grunt.registerTask "default", [
@@ -52,6 +60,7 @@ module.exports = (grunt) ->
 
   grunt.registerTask "build", [
     "coffee:addon"
+    "copy:addon"
     "browserify:addon"
     "concat:addon"
   ]
