@@ -4,5 +4,5 @@
   "siteName": "Google",
   "js": "addon.js",
   "shortDescription": "Sample project for tai.st addon",
-  "siteRegexp": "google.ru"
+  "siteRegexp": "google\\.\\w{2,4}"
 }
