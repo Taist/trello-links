@@ -2,9 +2,11 @@ React = require 'react'
 
 { div, span, h3, a } = React.DOM
 
+CustomSelect = require '../taist/customSelect'
+
 CardEditor = React.createFactory React.createClass
   getInitialState: ->
-    isEditorActive: false
+    isEditorActive: true
 
   onToggleEditor: ->
     @setState isEditorActive: not @state.isEditorActive
@@ -31,7 +33,12 @@ CardEditor = React.createFactory React.createClass
             span { className: 'icon-sm icon-add', onClick: @onToggleEditor }
 
       if @state.isEditorActive
-        div {}, 'Editor'
+        div {},
+          CustomSelect {
+            onSelect: (a) -> console.log 'onSelect', a
+            onChange: @props.onChange
+          }
+
 
       div {}, 'Links will be here'
 

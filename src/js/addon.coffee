@@ -1,8 +1,9 @@
 app = require './app'
 
+Q = require 'q'
+React = require 'react'
 insertAfter = require './helpers/insertAfter'
 
-React = require 'react'
 CardEditor = require './react/trello/cardEditor'
 
 addonEntry =
@@ -20,6 +21,20 @@ addonEntry =
 
       insertAfter container, detailWindow.querySelector '.card-detail-data'
 
-      React.render CardEditor(), container
+      renderData =
+        onChange: (query = '') ->
+          if query.length < 3
+            return Q.resolve []
+
+          url = "https://trello.com/1/search?query=#{query}"
+          url += '&partial=true&modelTypes=cards&card_board=true&card_list=true&card_stickers=true&elasticsearch=true'
+
+          Q.when $.ajax url
+          .then (result) ->
+            result.cards.map (card) -> { id: card.shortLink, value: card.name }
+          .catch (error) ->
+            console.log error
+
+      React.render CardEditor( renderData ), container
 
 module.exports = addonEntry
