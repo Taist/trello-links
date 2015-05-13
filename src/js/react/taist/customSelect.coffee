@@ -2,6 +2,8 @@ React = require 'react'
 
 { div, input } = React.DOM
 
+AwesomeIcons = require './awesomeIcons'
+
 CustomSelectOption = React.createFactory React.createClass
   getInitialState: ->
     backgroundColor: ''
@@ -134,7 +136,30 @@ CustomSelect = React.createFactory React.createClass
             height: '100%'
             paddingLeft: 6
             paddingRight: 6
-        }, 'V'
+            borderLeft: '1px solid silver'
+        },
+          div {
+            style:
+              width: 12
+              height: '100%'
+              backgroundImage: AwesomeIcons.getURL('caret-down')
+              backgroundSize: 'contain'
+              backgroundRepeat: 'no-repeat'
+              backgroundPosition: 'center'
+          }, ''
+          # span {
+          #   onClick: @onEdit
+          #   style:
+          #     opacity: 0.6
+          #     position: 'absolute'
+          #     display: 'inline-block'
+          #     width: 14
+          #     height: 16
+          #     backgroundImage: AwesomeIcons.getURL 'gear'
+          #     backgroundSize: 'contain'
+          #     backgroundRepeat: 'no-repeat'
+          #     backgroundPosition: 'center'
+          # }
 
       if @state.mode is 'select' and @state.options?.length > 0
         div {
