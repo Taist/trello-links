@@ -19,11 +19,25 @@ CustomSelect = require '../taist/customSelect'
 CardEditor = React.createFactory React.createClass
   getInitialState: ->
     isEditorActive: true
+    selectedCard: null
+    selectedLinkType: null
 
   onToggleEditor: ->
     @setState isEditorActive: not @state.isEditorActive
 
+  onSelectCard: (selectedCard) ->
+    @setState { selectedCard }
+
+  onSelectLinkType: (selectedLinkType) ->
+    @setState { selectedLinkType }
+
+  onCreateLink: () ->
+    if @state.selectedCard and @state.selectedLinkType
+      @props.onCreateLink @state.selectedCard, @state.selectedLinkType
+
   render: ->
+    console.log @props
+
     div { className: 'window-module' },
       div { className: 'window-module-title window-module-title-no-divider' },
         span { className: 'window-module-title-icon icon-lg icon-card' }
@@ -53,8 +67,8 @@ CardEditor = React.createFactory React.createClass
               td {},
                 CustomSelect {
                   selectType: 'static'
-                  onSelect: (a) -> console.log 'onSelect', a
-                  options: [ { id: 'link-type-related-to', value: 'related to' } ]
+                  onSelect: @onSelectLinkType
+                  options: @props.linkTypes
                 }
 
             tr {},
@@ -62,14 +76,19 @@ CardEditor = React.createFactory React.createClass
               td {},
                 CustomSelect {
                   selectType: 'search'
-                  onSelect: (a) -> console.log 'onSelect', a
+                  onSelect: @onSelectCard
                   onChange: @props.onChange
                 }
 
             tr {},
               td {}
               td {},
-                input { type: 'submit', className: 'primary confirm', value: 'Link cards' }
+                input {
+                  type: 'submit'
+                  className: 'primary confirm'
+                  value: 'Link cards'
+                  onMouseDown: @onCreateLink
+                }
 
       div {}, 'Links will be here'
 

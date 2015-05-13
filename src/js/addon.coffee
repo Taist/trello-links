@@ -21,6 +21,11 @@ addonEntry =
 
       insertAfter container, detailWindow.querySelector '.card-detail-data'
 
+      if matches = location.href.match /\/c\/([^\/]+)\//
+        currentCardId = matches[1]
+        currentCardName = detailWindow.querySelector('.js-card-title').innerText
+      currentCard = { id: currentCardId, value: currentCardName }
+
       renderData =
         onChange: (query = '') ->
           if query.length < 3
@@ -34,6 +39,14 @@ addonEntry =
             result.cards.map (card) -> { id: card.shortLink, value: card.name }
           .catch (error) ->
             console.log error
+
+        linkTypes: app.helpers.prepareLinkTypes()
+
+        currentCard: currentCard
+
+        onCreateLink: (card, linkType) ->
+          if currentCard
+            app.actions.onCreateLink currentCard, card, linkType
 
       React.render CardEditor( renderData ), container
 

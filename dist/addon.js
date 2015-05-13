@@ -1,5 +1,5 @@
 function init(){var require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var Q, app, appData, extend;
+var Q, app, appData, extend, linkTypes;
 
 Q = require('q');
 
@@ -8,6 +8,29 @@ require('react/lib/DOMProperty').ID_ATTRIBUTE_NAME = 'data-vrtl-reactid';
 extend = require('react/lib/Object.assign');
 
 appData = {};
+
+linkTypes = {
+  relates: {
+    name: 'Relates',
+    outward: 'relates to',
+    inward: 'relates to'
+  },
+  duplicate: {
+    name: 'Duplicate',
+    outward: 'duplicates',
+    inward: 'is duplicated by'
+  },
+  blocked: {
+    name: 'Blocked',
+    outward: 'blocks',
+    inward: 'is blocked by'
+  },
+  cloners: {
+    name: 'Cloners',
+    outward: 'clones',
+    inward: 'is cloned by'
+  }
+};
 
 app = {
   api: null,
@@ -31,7 +54,48 @@ app = {
       });
     };
   },
-  actions: {}
+  actions: {
+    onCreateLink: function(currentCard, card, linkType) {
+      var dummy, linkData, linkDirection, linkId, linkName, master, ref, ref1, slave;
+      console.log('onCreateLink', currentCard, card, linkType);
+      master = currentCard;
+      slave = card;
+      ref = linkType.id.match(/^(.+)\.(in|out)$/), dummy = ref[0], linkName = ref[1], linkDirection = ref[2];
+      if (linkDirection === 'in') {
+        ref1 = [slave, master], master = ref1[0], slave = ref1[1];
+      }
+      linkId = master.id + "-" + slave.id + "-" + linkName;
+      linkData = {
+        id: linkId,
+        masterName: master.value,
+        slaveName: slave.value
+      };
+      console.log(linkData);
+      return app.exapi.setPartOfCompanyData('trelloLinks', linkId, linkData)["catch"](function(error) {
+        return console.log(error);
+      });
+    }
+  },
+  helpers: {
+    prepareLinkTypes: function() {
+      var link, result, type;
+      result = [];
+      for (type in linkTypes) {
+        link = linkTypes[type];
+        result.push({
+          id: type + ".out",
+          value: link.outward
+        });
+        if (link.outward !== link.inward) {
+          result.push({
+            id: type + ".in",
+            value: link.inward
+          });
+        }
+      }
+      return result;
+    }
+  }
 };
 
 module.exports = app;
@@ -240,12 +304,9 @@ CustomSelect = React.createFactory(React.createClass({
     value = (ref1 = this.refs.inputText) != null ? ref1.getDOMNode().value : void 0;
     return typeof (base = this.props).onChange === "function" ? base.onChange(value).then((function(_this) {
       return function(newOptions) {
-        console.log(newOptions, _this.state.options);
         return _this.setState({
           options: newOptions,
           mode: 'select'
-        }, function() {
-          return console.log(_this.state.options);
         });
       };
     })(this)) : void 0;
@@ -352,7 +413,9 @@ CustomSelect = require('../taist/customSelect');
 CardEditor = React.createFactory(React.createClass({
   getInitialState: function() {
     return {
-      isEditorActive: true
+      isEditorActive: true,
+      selectedCard: null,
+      selectedLinkType: null
     };
   },
   onToggleEditor: function() {
@@ -360,7 +423,23 @@ CardEditor = React.createFactory(React.createClass({
       isEditorActive: !this.state.isEditorActive
     });
   },
+  onSelectCard: function(selectedCard) {
+    return this.setState({
+      selectedCard: selectedCard
+    });
+  },
+  onSelectLinkType: function(selectedLinkType) {
+    return this.setState({
+      selectedLinkType: selectedLinkType
+    });
+  },
+  onCreateLink: function() {
+    if (this.state.selectedCard && this.state.selectedLinkType) {
+      return this.props.onCreateLink(this.state.selectedCard, this.state.selectedLinkType);
+    }
+  },
   render: function() {
+    console.log(this.props);
     return div({
       className: 'window-module'
     }, div({
@@ -405,15 +484,8 @@ CardEditor = React.createFactory(React.createClass({
       }
     }, 'This card'), td({}, CustomSelect({
       selectType: 'static',
-      onSelect: function(a) {
-        return console.log('onSelect', a);
-      },
-      options: [
-        {
-          id: 'link-type-related-to',
-          value: 'related to'
-        }
-      ]
+      onSelect: this.onSelectLinkType,
+      options: this.props.linkTypes
     }))), tr({}, td({
       style: {
         textAlign: 'right',
@@ -421,14 +493,13 @@ CardEditor = React.createFactory(React.createClass({
       }
     }, 'Card'), td({}, CustomSelect({
       selectType: 'search',
-      onSelect: function(a) {
-        return console.log('onSelect', a);
-      },
+      onSelect: this.onSelectCard,
       onChange: this.props.onChange
     }))), tr({}, td({}), td({}, input({
       type: 'submit',
       className: 'primary confirm',
-      value: 'Link cards'
+      value: 'Link cards',
+      onMouseDown: this.onCreateLink
     }))))) : void 0, div({}, 'Links will be here'));
   }
 }));
@@ -22314,10 +22385,18 @@ addonEntry = {
     DOMObserver = require('./helpers/domObserver');
     app.elementObserver = new DOMObserver();
     return app.elementObserver.waitElement('.card-detail-window', function(detailWindow) {
-      var container, renderData;
+      var container, currentCard, currentCardId, currentCardName, matches, renderData;
       container = document.createElement('div');
       container.className = 'taist';
       insertAfter(container, detailWindow.querySelector('.card-detail-data'));
+      if (matches = location.href.match(/\/c\/([^\/]+)\//)) {
+        currentCardId = matches[1];
+        currentCardName = detailWindow.querySelector('.js-card-title').innerText;
+      }
+      currentCard = {
+        id: currentCardId,
+        value: currentCardName
+      };
       renderData = {
         onChange: function(query) {
           var url;
@@ -22339,6 +22418,13 @@ addonEntry = {
           })["catch"](function(error) {
             return console.log(error);
           });
+        },
+        linkTypes: app.helpers.prepareLinkTypes(),
+        currentCard: currentCard,
+        onCreateLink: function(card, linkType) {
+          if (currentCard) {
+            return app.actions.onCreateLink(currentCard, card, linkType);
+          }
         }
       };
       return React.render(CardEditor(renderData), container);

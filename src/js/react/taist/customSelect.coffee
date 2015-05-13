@@ -83,9 +83,7 @@ CustomSelect = React.createFactory React.createClass
     value = @refs.inputText?.getDOMNode().value
     @props.onChange?(value)
     .then (newOptions) =>
-      console.log newOptions, @state.options
-      @setState { options: newOptions, mode: 'select' }, =>
-        console.log @state.options
+      @setState { options: newOptions, mode: 'select' }
 
   onClickOnInput: ->
     @setState { mode: 'select' }, =>
