@@ -58,7 +58,6 @@ app = {
   actions: {
     onCreateLink: function(currentCard, card, linkType) {
       var dummy, linkData, linkDirection, linkId, linkName, master, ref, ref1, slave;
-      console.log('onCreateLink', currentCard, card, linkType);
       master = currentCard;
       slave = card;
       ref = linkType.id.match(/^(.+)\.(in|out)$/), dummy = ref[0], linkName = ref[1], linkDirection = ref[2];
@@ -72,7 +71,10 @@ app = {
         slaveName: slave.value
       };
       console.log(linkData);
-      return app.exapi.setPartOfCompanyData('trelloLinks', linkId, linkData)["catch"](function(error) {
+      return app.exapi.setPartOfCompanyData('trelloLinks', linkId, linkData).then(function() {
+        appData.trelloLinks[linkId] = linkData;
+        return app.helpers.getCardLinks(currentCard.id);
+      })["catch"](function(error) {
         return console.log(error);
       });
     }
@@ -468,11 +470,13 @@ CardEditor = React.createFactory(React.createClass({
   },
   onCreateLink: function() {
     if (this.state.selectedCard && this.state.selectedLinkType) {
-      return this.props.onCreateLink(this.state.selectedCard, this.state.selectedLinkType);
+      this.props.onCreateLink(this.state.selectedCard, this.state.selectedLinkType);
+      return this.setState({
+        isEditorActive: false
+      });
     }
   },
   render: function() {
-    console.log(this.props);
     return div({
       className: 'window-module'
     }, div({
@@ -545,15 +549,24 @@ CardEditor = React.createFactory(React.createClass({
         background: 'none'
       }
     }, this.props.linkedCards.map(function(card) {
-      return tr({}, td({
+      return tr({
+        key: card.linkedCardId + "-" + card.linkTypeName
+      }, td({
         style: {
           textAlign: 'right',
           verticalAlign: 'middle',
-          width: 140,
+          minWidth: 140,
           paddingRight: 12
         }
       }, card.linkTypeName), td({}, a({
-        href: "/c/" + card.linkedCardId
+        href: "/c/" + card.linkedCardId,
+        style: {
+          display: 'block',
+          width: '100%',
+          overflow: 'hidden',
+          height: '1.2rem',
+          textOverflow: 'ellipsis'
+        }
       }, card.linkedCardName)));
     })))));
   }
@@ -22480,7 +22493,10 @@ addonEntry = {
           currentCard: currentCard,
           onCreateLink: function(card, linkType) {
             if (currentCard) {
-              return app.actions.onCreateLink(currentCard, card, linkType);
+              return app.actions.onCreateLink(currentCard, card, linkType).then(function(linkedCards) {
+                renderData.linkedCards = linkedCards;
+                return React.render(CardEditor(renderData), container);
+              });
             }
           },
           linkedCards: app.helpers.getCardLinks(currentCard.id)

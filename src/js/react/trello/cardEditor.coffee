@@ -33,10 +33,9 @@ CardEditor = React.createFactory React.createClass
   onCreateLink: () ->
     if @state.selectedCard and @state.selectedLinkType
       @props.onCreateLink @state.selectedCard, @state.selectedLinkType
+      @setState isEditorActive: false
 
   render: ->
-    console.log @props
-
     div { className: 'window-module' },
       div { className: 'window-module-title window-module-title-no-divider' },
         span { className: 'window-module-title-icon icon-lg icon-card' }
@@ -99,16 +98,25 @@ CardEditor = React.createFactory React.createClass
         table { style: width: '100%', border: 'none' },
           tbody { style: background: 'none' },
             @props.linkedCards.map (card) ->
-              tr {},
+              tr { key: "#{card.linkedCardId}-#{card.linkTypeName}" },
                 td { style:
                   textAlign: 'right'
                   verticalAlign: 'middle'
-                  width: 140
+                  minWidth: 140
                   paddingRight: 12
                 },
                   card.linkTypeName
                 td {},
-                 a { href: "/c/#{card.linkedCardId}" }, card.linkedCardName
+                  a {
+                    href: "/c/#{card.linkedCardId}"
+                    style:
+                      display: 'block'
+                      width: '100%'
+                      overflow: 'hidden'
+                      height: '1.2rem'
+                      textOverflow: 'ellipsis'
+                  },
+                    card.linkedCardName
 
 
 module.exports = CardEditor

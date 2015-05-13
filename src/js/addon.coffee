@@ -51,6 +51,9 @@ addonEntry =
           onCreateLink: (card, linkType) ->
             if currentCard
               app.actions.onCreateLink currentCard, card, linkType
+              .then (linkedCards) ->
+                renderData.linkedCards = linkedCards
+                React.render CardEditor( renderData ), container
 
           linkedCards: app.helpers.getCardLinks currentCard.id
 

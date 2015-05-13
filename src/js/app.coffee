@@ -54,8 +54,6 @@ app =
 
   actions:
     onCreateLink: (currentCard, card, linkType) ->
-      console.log 'onCreateLink', currentCard, card, linkType
-
       master = currentCard
       slave = card
 
@@ -72,6 +70,9 @@ app =
       console.log linkData
 
       app.exapi.setPartOfCompanyData 'trelloLinks', linkId, linkData
+      .then () ->
+        appData.trelloLinks[linkId] = linkData
+        app.helpers.getCardLinks currentCard.id
       .catch (error) ->
         console.log error
 
