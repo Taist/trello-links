@@ -70,7 +70,6 @@ app = {
         masterName: master.value,
         slaveName: slave.value
       };
-      console.log(linkData);
       return app.exapi.setPartOfCompanyData('trelloLinks', linkId, linkData).then(function() {
         appData.trelloLinks[linkId] = linkData;
         return app.helpers.getCardLinks(currentCard.id);
@@ -577,10 +576,12 @@ CardEditor = React.createFactory(React.createClass({
     }
   },
   onRemoveLink: function(linkId) {
-    return this.props.onRemoveLink(linkId);
+    var base;
+    return typeof (base = this.props).onRemoveLink === "function" ? base.onRemoveLink(linkId) : void 0;
   },
   render: function() {
     var prevType;
+    prevType = '';
     return div({
       className: 'window-module'
     }, div({
@@ -652,17 +653,17 @@ CardEditor = React.createFactory(React.createClass({
       style: {
         background: 'none'
       }
-    }, prevType = '', this.props.linkedCards.map((function(_this) {
+    }, this.props.linkedCards.map((function(_this) {
       return function(card) {
         return tr({
           key: card.linkedCardId + "-" + card.linkTypeName,
           onMouseEnter: function() {
             return _this.setState({
-              highlightedLinkId: card.linkedCardId
+              highlightedLinkId: card.linkId
             });
           },
           onMouseLeave: function() {
-            if (card.linkedCardId === _this.state.highlightedLinkId) {
+            if (card.linkId === _this.state.highlightedLinkId) {
               return _this.setState({
                 highlightedLinkId: null
               });
@@ -693,16 +694,17 @@ CardEditor = React.createFactory(React.createClass({
             width: 20,
             minWidth: 20
           }
-        }, card.linkedCardId === _this.state.highlightedLinkId ? span({
+        }, a({}, span({
           className: 'icon-sm icon-close',
           onMouseDown: function() {
             return _this.onRemoveLink(card.linkId);
           },
           style: {
             color: 'salmon',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            display: card.linkId === _this.state.highlightedLinkId ? '' : 'none'
           }
-        }) : void 0));
+        }))));
       };
     })(this))))));
   }
@@ -22934,21 +22936,21 @@ addonEntry = {
           linkTypes: app.helpers.prepareLinkTypes(),
           currentCard: currentCard,
           onCreateLink: function(card, linkType) {
-            if (currentCard) {
-              return app.actions.onCreateLink(currentCard, card, linkType).then(function(linkedCards) {
-                renderData.linkedCards = linkedCards;
-                return React.render(CardEditor(renderData), container);
-              });
-            }
+            return app.actions.onCreateLink(currentCard, card, linkType).then(function(linkedCards) {
+              renderData.linkedCards = linkedCards;
+              return React.render(CardEditor(renderData), container);
+            });
           },
           onRemoveLink: function(linkId) {
             return app.actions.onRemoveLink(currentCard, linkId).then(function(linkedCards) {
               renderData.linkedCards = linkedCards;
               return React.render(CardEditor(renderData), container);
+            })["catch"](function(error) {
+              return console.log(error);
             });
-          },
-          linkedCards: app.helpers.getCardLinks(currentCard.id)
+          }
         };
+        renderData.linkedCards = app.helpers.getCardLinks(currentCard.id);
         return React.render(CardEditor(renderData), container);
       });
     });

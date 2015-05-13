@@ -37,9 +37,11 @@ CardEditor = React.createFactory React.createClass
       @setState isEditorActive: false
 
   onRemoveLink: (linkId) ->
-    @props.onRemoveLink linkId
+    @props.onRemoveLink? linkId
 
   render: ->
+    prevType = ''
+
     div { className: 'window-module' },
       div { className: 'window-module-title window-module-title-no-divider' },
         span { className: 'window-module-title-icon icon-lg icon-card' }
@@ -101,14 +103,13 @@ CardEditor = React.createFactory React.createClass
       div {},
         table { style: width: '100%', border: 'none' },
           tbody { style: background: 'none' },
-            prevType = ''
             @props.linkedCards.map (card) =>
               tr {
                 key: "#{card.linkedCardId}-#{card.linkTypeName}"
                 onMouseEnter: =>
-                  @setState highlightedLinkId: card.linkedCardId
+                  @setState highlightedLinkId: card.linkId
                 onMouseLeave: =>
-                  if card.linkedCardId is @state.highlightedLinkId
+                  if card.linkId is @state.highlightedLinkId
                     @setState highlightedLinkId: null
               },
                 td { style:
@@ -142,7 +143,7 @@ CardEditor = React.createFactory React.createClass
                     width: 20
                     minWidth: 20
                 },
-                  if card.linkedCardId is @state.highlightedLinkId
+                  a {},
                     span {
                       className: 'icon-sm icon-close'
                       onMouseDown: () =>
@@ -150,7 +151,7 @@ CardEditor = React.createFactory React.createClass
                       style:
                         color: 'salmon'
                         cursor: 'pointer'
+                        display: if card.linkId is @state.highlightedLinkId then '' else 'none'
                     }
-
 
 module.exports = CardEditor

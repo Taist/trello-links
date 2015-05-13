@@ -51,19 +51,20 @@ addonEntry =
           currentCard: currentCard
 
           onCreateLink: (card, linkType) ->
-            if currentCard
-              app.actions.onCreateLink currentCard, card, linkType
-              .then (linkedCards) ->
-                renderData.linkedCards = linkedCards
-                React.render CardEditor( renderData ), container
+            app.actions.onCreateLink currentCard, card, linkType
+            .then (linkedCards) ->
+              renderData.linkedCards = linkedCards
+              React.render CardEditor( renderData ), container
 
           onRemoveLink: (linkId) ->
             app.actions.onRemoveLink currentCard, linkId
             .then (linkedCards) ->
               renderData.linkedCards = linkedCards
               React.render CardEditor( renderData ), container
+            .catch (error) ->
+              console.log error
 
-          linkedCards: app.helpers.getCardLinks currentCard.id
+        renderData.linkedCards = app.helpers.getCardLinks currentCard.id
 
         React.render CardEditor( renderData ), container
 

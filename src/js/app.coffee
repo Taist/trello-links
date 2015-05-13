@@ -67,7 +67,6 @@ app =
         id: linkId
         masterName: master.value
         slaveName: slave.value
-      console.log linkData
 
       app.exapi.setPartOfCompanyData 'trelloLinks', linkId, linkData
       .then () ->
