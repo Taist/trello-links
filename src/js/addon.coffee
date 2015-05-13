@@ -40,7 +40,9 @@ addonEntry =
 
             Q.when $.ajax url
             .then (result) ->
-              result.cards.map (card) -> { id: card.shortLink, value: card.name }
+              result.cards
+              .filter (card) -> card.shortLink isnt currentCard.id
+              .map (card) -> { id: card.shortLink, value: card.name }
             .catch (error) ->
               console.log error
 

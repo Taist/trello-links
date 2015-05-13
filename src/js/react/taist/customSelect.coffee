@@ -136,7 +136,7 @@ CustomSelect = React.createFactory React.createClass
             paddingRight: 6
         }, 'V'
 
-      if @state.mode is 'select' and @state.options.length > 0
+      if @state.mode is 'select' and @state.options?.length > 0
         div {
           ref: 'optionsContainer'
           style:

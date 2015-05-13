@@ -377,7 +377,7 @@ CustomSelect = React.createFactory(React.createClass({
     })(this));
   },
   render: function() {
-    var controlWidth;
+    var controlWidth, ref1;
     controlWidth = this.props.width || '100%';
     return div({
       style: {
@@ -407,7 +407,7 @@ CustomSelect = React.createFactory(React.createClass({
         paddingLeft: 6,
         paddingRight: 6
       }
-    }, 'V'), this.state.mode === 'select' && this.state.options.length > 0 ? div({
+    }, 'V'), this.state.mode === 'select' && ((ref1 = this.state.options) != null ? ref1.length : void 0) > 0 ? div({
       ref: 'optionsContainer',
       style: {
         position: 'absolute',
@@ -424,11 +424,11 @@ CustomSelect = React.createFactory(React.createClass({
       }
     }, this.state.options.map((function(_this) {
       return function(o) {
-        var ref1;
+        var ref2;
         return div({
           key: o.id
         }, CustomSelectOption({
-          ref: o.id === ((ref1 = _this.state.selected) != null ? ref1.id : void 0) ? 'selectedOption' : void 0,
+          ref: o.id === ((ref2 = _this.state.selected) != null ? ref2.id : void 0) ? 'selectedOption' : void 0,
           id: o.id,
           value: o.value,
           onSelect: _this.onSelectOption
@@ -613,7 +613,6 @@ CardEditor = React.createFactory(React.createClass({
         }, card.linkedCardId === _this.state.highlightedLinkId ? span({
           className: 'icon-sm icon-close',
           onMouseDown: function() {
-            console.log(card);
             return _this.onRemoveLink(card.linkId);
           },
           style: {
@@ -22533,7 +22532,9 @@ addonEntry = {
             url = "https://trello.com/1/search?query=" + query;
             url += '&partial=true&modelTypes=cards&card_board=true&card_list=true&card_stickers=true&elasticsearch=true';
             return Q.when($.ajax(url)).then(function(result) {
-              return result.cards.map(function(card) {
+              return result.cards.filter(function(card) {
+                return card.shortLink !== currentCard.id;
+              }).map(function(card) {
                 return {
                   id: card.shortLink,
                   value: card.name

@@ -146,7 +146,6 @@ CardEditor = React.createFactory React.createClass
                     span {
                       className: 'icon-sm icon-close'
                       onMouseDown: () =>
-                        console.log card
                         @onRemoveLink card.linkId
                       style:
                         color: 'salmon'
