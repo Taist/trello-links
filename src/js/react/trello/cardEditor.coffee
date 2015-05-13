@@ -97,15 +97,20 @@ CardEditor = React.createFactory React.createClass
       div {},
         table { style: width: '100%', border: 'none' },
           tbody { style: background: 'none' },
+            prevType = ''
             @props.linkedCards.map (card) ->
               tr { key: "#{card.linkedCardId}-#{card.linkTypeName}" },
                 td { style:
                   textAlign: 'right'
                   verticalAlign: 'middle'
+                  width: 140
                   minWidth: 140
                   paddingRight: 12
                 },
-                  card.linkTypeName
+                  if prevType isnt card.linkTypeName
+                    prevType = card.linkTypeName
+                  else
+                    ''
                 td {},
                   a {
                     href: "/c/#{card.linkedCardId}"

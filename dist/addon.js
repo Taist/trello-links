@@ -108,6 +108,13 @@ app = {
           });
         }
       }
+      result.sort(function(a, b) {
+        if (a.linkTypeName <= b.linkTypeName) {
+          return 0;
+        } else {
+          return 1;
+        }
+      });
       return result;
     },
     prepareLinkTypes: function() {
@@ -477,6 +484,7 @@ CardEditor = React.createFactory(React.createClass({
     }
   },
   render: function() {
+    var prevType;
     return div({
       className: 'window-module'
     }, div({
@@ -548,17 +556,18 @@ CardEditor = React.createFactory(React.createClass({
       style: {
         background: 'none'
       }
-    }, this.props.linkedCards.map(function(card) {
+    }, prevType = '', this.props.linkedCards.map(function(card) {
       return tr({
         key: card.linkedCardId + "-" + card.linkTypeName
       }, td({
         style: {
           textAlign: 'right',
           verticalAlign: 'middle',
+          width: 140,
           minWidth: 140,
           paddingRight: 12
         }
-      }, card.linkTypeName), td({}, a({
+      }, prevType !== card.linkTypeName ? prevType = card.linkTypeName : ''), td({}, a({
         href: "/c/" + card.linkedCardId,
         style: {
           display: 'block',

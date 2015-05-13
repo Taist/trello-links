@@ -102,6 +102,9 @@ app =
             linkedCardId: linkedCardId
             linkedCardName: linkedCardName
 
+      result.sort (a, b) ->
+        if a.linkTypeName <= b.linkTypeName then 0 else 1
+
       result
 
     prepareLinkTypes: () ->
