@@ -4,6 +4,8 @@ React = require 'react'
 
 AwesomeIcons = require './awesomeIcons'
 
+Spinner = require 'spin'
+
 CustomSelectOption = React.createFactory React.createClass
   getInitialState: ->
     backgroundColor: ''
@@ -32,9 +34,24 @@ attrName = require('react/lib/DOMProperty').ID_ATTRIBUTE_NAME
 dataAttrName = attrName.replace(/^data-/, '').replace /-./g, (a) -> a.slice(1).toUpperCase()
 
 CustomSelect = React.createFactory React.createClass
+  getInitialState: ->
+    isSpinnerActive: false
+    textBoxValue: ''
+    mode: 'view'
+    options: []
+
   componentDidMount: ->
     document.addEventListener 'keyup', @onKeyUp
     document.addEventListener "mousedown", @onClickOutside
+
+    if @props.selectType is 'search'
+      config =
+        length: 4
+        width: 2
+        radius: 4
+        className: 'reactSpinner'
+      @spinner = new Spinner config
+      @spinner.spin @refs.spinnerContainer?.getDOMNode()
 
   componentWillUnmount: ->
     document.removeEventListener 'keyup', @onKeyUp
@@ -51,11 +68,6 @@ CustomSelect = React.createFactory React.createClass
 
   onClose: ->
     @setState { mode: 'view' }
-
-  getInitialState: ->
-    textBoxValue: ''
-    mode: 'view'
-    options: []
 
   updateState: (newProps) ->
     switch newProps.selectType
@@ -83,9 +95,12 @@ CustomSelect = React.createFactory React.createClass
 
   onChange: ->
     value = @refs.inputText?.getDOMNode().value
-    @props.onChange?(value)
-    .then (newOptions) =>
-      @setState { options: newOptions, mode: 'select' }
+    @setState { isSpinnerActive: true }, =>
+      @props.onChange?(value)
+      .then (newOptions) =>
+        @setState { options: newOptions, isSpinnerActive: false, mode: 'select' }
+      .catch (error) =>
+        console.log error
 
   onClickOnInput: ->
     @setState { mode: 'select' }, =>
@@ -135,6 +150,7 @@ CustomSelect = React.createFactory React.createClass
             boxSizing: 'border-box'
             height: '100%'
             paddingLeft: 6
+            width: 24
             paddingRight: 6
             borderLeft: '1px solid silver'
         },
@@ -146,20 +162,20 @@ CustomSelect = React.createFactory React.createClass
               backgroundSize: 'contain'
               backgroundRepeat: 'no-repeat'
               backgroundPosition: 'center'
-          }, ''
-          # span {
-          #   onClick: @onEdit
-          #   style:
-          #     opacity: 0.6
-          #     position: 'absolute'
-          #     display: 'inline-block'
-          #     width: 14
-          #     height: 16
-          #     backgroundImage: AwesomeIcons.getURL 'gear'
-          #     backgroundSize: 'contain'
-          #     backgroundRepeat: 'no-repeat'
-          #     backgroundPosition: 'center'
-          # }
+              display: if @state.isSpinnerActive then 'none' else ''
+          }
+
+          div {
+            ref: 'spinnerContainer'
+            style:
+              position: 'absolute'
+              left: '50%'
+              top: '50%'
+              transform: 'translate(-50%, -50%)'
+              backgroundColor: 'white'
+              display: if @state.isSpinnerActive then '' else 'none'
+          }
+
 
       if @state.mode is 'select' and @state.options?.length > 0
         div {

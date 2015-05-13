@@ -12,6 +12,7 @@
     "grunt-contrib-copy": "*",
     "grunt-contrib-watch": "*",
     "q": "^1.4.0",
-    "react": "^0.13.3"
+    "react": "^0.13.3",
+    "spin": "0.0.1"
   }
 }
