@@ -183,7 +183,6 @@ CustomSelect = React.createFactory(React.createClass({
   },
   onClickOutside: function(event) {
     var ref1;
-    console.log('dataAttrName');
     if (((ref1 = event.target.dataset[dataAttrName]) != null ? ref1.indexOf(this.getDOMNode().dataset[dataAttrName]) : void 0) !== 0) {
       return this.onClose();
     }
@@ -200,14 +199,24 @@ CustomSelect = React.createFactory(React.createClass({
   },
   getInitialState: function() {
     return {
+      textBoxValue: '',
       mode: 'view',
       options: []
     };
   },
   updateState: function(newProps) {
-    return this.setState({
-      selected: newProps.selected
-    });
+    switch (newProps.selectType) {
+      case 'static':
+        return this.setState({
+          selected: newProps.selected,
+          options: newProps.options || [],
+          mode: 'view'
+        });
+      case 'search':
+        return this.setState({
+          selected: newProps.selected
+        });
+    }
   },
   componentWillMount: function() {
     return this.updateState(this.props);
@@ -216,9 +225,12 @@ CustomSelect = React.createFactory(React.createClass({
     return this.updateState(nextProps);
   },
   onSelectOption: function(selectedOption) {
-    var base;
+    var base, ref1;
+    if ((ref1 = this.refs.inputText) != null) {
+      ref1.getDOMNode().value = selectedOption.value;
+    }
     this.setState({
-      value: selectedOption.value,
+      options: [selectedOption],
       mode: 'view'
     });
     return typeof (base = this.props).onSelect === "function" ? base.onSelect(selectedOption) : void 0;
@@ -255,47 +267,53 @@ CustomSelect = React.createFactory(React.createClass({
   },
   render: function() {
     var controlWidth;
-    console.log(this.state, this.state.options.length);
     controlWidth = this.props.width || '100%';
     return div({
       style: {
         display: 'inline-block',
-        width: controlWidth
+        width: controlWidth,
+        position: 'relative'
       }
     }, div({}), input({
       ref: 'inputText',
       onChange: this.onChange,
-      onMouseDown: (function(_this) {
-        return function() {
-          console.log('onClick');
-          return _this.onClickOnInput();
-        };
-      })(this),
+      onMouseDown: this.onClickOnInput,
+      readOnly: this.props.selectType === 'static' ? true : void 0,
       style: {
         width: controlWidth,
         boxSizing: 'border-box',
         marginBottom: 0,
         backgroundColor: 'white'
       }
-    }), this.state.mode === 'select' && this.state.options.length > 0 ? div({
+    }), div({
+      onMouseDown: this.onClickOnInput,
+      style: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        boxSizing: 'border-box',
+        height: '100%',
+        paddingLeft: 6,
+        paddingRight: 6
+      }
+    }, 'V'), this.state.mode === 'select' && this.state.options.length > 0 ? div({
       ref: 'optionsContainer',
       style: {
         position: 'absolute',
         border: '1px solid silver',
         borderRadius: 3,
-        minWidth: controlWidth,
+        width: controlWidth,
         cursor: 'pointer',
-        backgroundColor: 'white',
         zIndex: 1024,
         maxHeight: 128,
         overflowY: 'auto',
         overflowX: 'hidden',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        backgroundColor: 'white'
       }
     }, this.state.options.map((function(_this) {
       return function(o) {
         var ref1;
-        console.log(o);
         return div({
           key: o.id
         }, CustomSelectOption({
@@ -312,11 +330,22 @@ CustomSelect = React.createFactory(React.createClass({
 module.exports = CustomSelect;
 
 },{"react":162,"react/lib/DOMProperty":16}],5:[function(require,module,exports){
-var CardEditor, CustomSelect, React, a, div, h3, ref, span;
+var CardEditor, CustomSelect, React, a, div, h3, input, ref, span, table, tbody, td, tr;
 
 React = require('react');
 
-ref = React.DOM, div = ref.div, span = ref.span, h3 = ref.h3, a = ref.a;
+ref = React.DOM, div = ref.div, span = ref.span, h3 = ref.h3, a = ref.a, table = ref.table, tbody = ref.tbody, tr = ref.tr, input = ref.input;
+
+td = function() {
+  var props;
+  props = arguments[0];
+  if (props.style == null) {
+    props.style = {};
+  }
+  props.style.padding = 2;
+  props.style.border = 'none';
+  return React.DOM.td.apply(this, arguments);
+};
 
 CustomSelect = require('../taist/customSelect');
 
@@ -359,12 +388,48 @@ CardEditor = React.createFactory(React.createClass({
     }) : span({
       className: 'icon-sm icon-add',
       onClick: this.onToggleEditor
-    }))), this.state.isEditorActive ? div({}, CustomSelect({
+    }))), this.state.isEditorActive ? table({
+      style: {
+        width: '100%',
+        border: 'none'
+      }
+    }, tbody({
+      style: {
+        background: 'none'
+      }
+    }, tr({}, td({
+      style: {
+        textAlign: 'right',
+        verticalAlign: 'middle',
+        width: 100
+      }
+    }, 'This card'), td({}, CustomSelect({
+      selectType: 'static',
+      onSelect: function(a) {
+        return console.log('onSelect', a);
+      },
+      options: [
+        {
+          id: 'link-type-related-to',
+          value: 'related to'
+        }
+      ]
+    }))), tr({}, td({
+      style: {
+        textAlign: 'right',
+        verticalAlign: 'middle'
+      }
+    }, 'Card'), td({}, CustomSelect({
+      selectType: 'search',
       onSelect: function(a) {
         return console.log('onSelect', a);
       },
       onChange: this.props.onChange
-    })) : void 0, div({}, 'Links will be here'));
+    }))), tr({}, td({}), td({}, input({
+      type: 'submit',
+      className: 'primary confirm',
+      value: 'Link cards'
+    }))))) : void 0, div({}, 'Links will be here'));
   }
 }));
 

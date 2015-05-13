@@ -39,7 +39,6 @@ CustomSelect = React.createFactory React.createClass
     document.removeEventListener "mousedown", @onClickOutside
 
   onClickOutside: (event) ->
-    console.log 'dataAttrName'
     if event.target.dataset[dataAttrName]?.indexOf(@.getDOMNode().dataset[dataAttrName]) isnt 0
       #target is not a child of the component
       @onClose()
@@ -52,14 +51,22 @@ CustomSelect = React.createFactory React.createClass
     @setState { mode: 'view' }
 
   getInitialState: ->
+    textBoxValue: ''
     mode: 'view'
     options: []
 
   updateState: (newProps) ->
-    @setState
-      selected: newProps.selected
-      # options: newProps.options or []
-      # mode: 'view'
+    switch newProps.selectType
+
+      when 'static'
+        @setState
+          selected: newProps.selected
+          options: newProps.options or []
+          mode: 'view'
+
+      when 'search'
+        @setState
+          selected: newProps.selected
 
   componentWillMount: ->
     @updateState @props
@@ -68,7 +75,8 @@ CustomSelect = React.createFactory React.createClass
     @updateState nextProps
 
   onSelectOption: (selectedOption) ->
-    @setState { value: selectedOption.value, mode: 'view' }
+    @refs.inputText?.getDOMNode().value = selectedOption.value
+    @setState { options: [selectedOption], mode: 'view' }
     @props.onSelect?(selectedOption)
 
   onChange: ->
@@ -93,23 +101,22 @@ CustomSelect = React.createFactory React.createClass
         )
 
   render: ->
-    console.log @state, @state.options.length
-
     controlWidth = @props.width or '100%'
 
     div {
       style:
         display: 'inline-block'
         width: controlWidth
+        position: 'relative'
     },
       div {}
         input {
           ref: 'inputText'
 
           onChange: @onChange
-          onMouseDown: =>
-            console.log 'onClick'
-            @onClickOnInput()
+          onMouseDown: @onClickOnInput
+
+          readOnly: true if @props.selectType is 'static'
 
           style:
             width: controlWidth
@@ -118,6 +125,19 @@ CustomSelect = React.createFactory React.createClass
             backgroundColor: 'white'
         }
 
+        div {
+          onMouseDown: @onClickOnInput
+
+          style:
+            position: 'absolute'
+            top: 0
+            right: 0
+            boxSizing: 'border-box'
+            height: '100%'
+            paddingLeft: 6
+            paddingRight: 6
+        }, 'V'
+
       if @state.mode is 'select' and @state.options.length > 0
         div {
           ref: 'optionsContainer'
@@ -125,18 +145,18 @@ CustomSelect = React.createFactory React.createClass
             position: 'absolute'
             border: '1px solid silver'
             borderRadius: 3
-            minWidth: controlWidth
+            width: controlWidth
             cursor: 'pointer'
-            backgroundColor: 'white'
             zIndex: 1024
             maxHeight: 128
             overflowY: 'auto'
             overflowX: 'hidden'
             boxSizing: 'border-box'
+
+            backgroundColor: 'white'
         },
 
           @state.options.map (o) =>
-            console.log o
             div { key: o.id }, CustomSelectOption {
               ref: if o.id is @state.selected?.id then 'selectedOption' else undefined
               id: o.id
