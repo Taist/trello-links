@@ -20,6 +20,7 @@ CardEditor = React.createFactory React.createClass
     isEditorActive: false
     selectedCard: null
     selectedLinkType: null
+    highlightedLinkId: null
 
   onToggleEditor: ->
     @setState isEditorActive: not @state.isEditorActive
@@ -34,6 +35,9 @@ CardEditor = React.createFactory React.createClass
     if @state.selectedCard and @state.selectedLinkType
       @props.onCreateLink @state.selectedCard, @state.selectedLinkType
       @setState isEditorActive: false
+
+  onRemoveLink: (linkId) ->
+    @props.onRemoveLink linkId
 
   render: ->
     div { className: 'window-module' },
@@ -98,8 +102,15 @@ CardEditor = React.createFactory React.createClass
         table { style: width: '100%', border: 'none' },
           tbody { style: background: 'none' },
             prevType = ''
-            @props.linkedCards.map (card) ->
-              tr { key: "#{card.linkedCardId}-#{card.linkTypeName}" },
+            @props.linkedCards.map (card) =>
+              tr {
+                key: "#{card.linkedCardId}-#{card.linkTypeName}"
+                onMouseEnter: =>
+                  @setState highlightedLinkId: card.linkedCardId
+                onMouseLeave: =>
+                  if card.linkedCardId is @state.highlightedLinkId
+                    @setState highlightedLinkId: null
+              },
                 td { style:
                   textAlign: 'right'
                   verticalAlign: 'middle'
@@ -115,6 +126,7 @@ CardEditor = React.createFactory React.createClass
                   a {
                     href: "/c/#{card.linkedCardId}"
                     style:
+                      paddingLeft: 4
                       display: 'block'
                       width: '100%'
                       overflow: 'hidden'
@@ -122,6 +134,24 @@ CardEditor = React.createFactory React.createClass
                       textOverflow: 'ellipsis'
                   },
                     card.linkedCardName
+
+                td {
+                  style:
+                    textAlign: 'right'
+                    verticalAlign: 'middle'
+                    width: 20
+                    minWidth: 20
+                },
+                  if card.linkedCardId is @state.highlightedLinkId
+                    span {
+                      className: 'icon-sm icon-close'
+                      onMouseDown: () =>
+                        console.log card
+                        @onRemoveLink card.linkId
+                      style:
+                        color: 'salmon'
+                        cursor: 'pointer'
+                    }
 
 
 module.exports = CardEditor

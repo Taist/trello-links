@@ -76,6 +76,14 @@ app =
       .catch (error) ->
         console.log error
 
+    onRemoveLink: (currentCard, linkId) ->
+      app.exapi.setPartOfCompanyData 'trelloLinks', linkId, null
+      .then () ->
+        delete appData.trelloLinks[linkId]
+        app.helpers.getCardLinks currentCard.id
+      .catch (error) ->
+        console.log error
+
   helpers:
     setTrelloLinks: (trelloLinks) ->
       appData.trelloLinks = trelloLinks
@@ -98,6 +106,7 @@ app =
 
         if direction
           result.push
+            linkId: id
             linkTypeName: appData.linkTypes[linkType][direction]
             linkedCardId: linkedCardId
             linkedCardName: linkedCardName

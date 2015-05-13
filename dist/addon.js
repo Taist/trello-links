@@ -77,6 +77,14 @@ app = {
       })["catch"](function(error) {
         return console.log(error);
       });
+    },
+    onRemoveLink: function(currentCard, linkId) {
+      return app.exapi.setPartOfCompanyData('trelloLinks', linkId, null).then(function() {
+        delete appData.trelloLinks[linkId];
+        return app.helpers.getCardLinks(currentCard.id);
+      })["catch"](function(error) {
+        return console.log(error);
+      });
     }
   },
   helpers: {
@@ -102,6 +110,7 @@ app = {
         }
         if (direction) {
           result.push({
+            linkId: id,
             linkTypeName: appData.linkTypes[linkType][direction],
             linkedCardId: linkedCardId,
             linkedCardName: linkedCardName
@@ -457,7 +466,8 @@ CardEditor = React.createFactory(React.createClass({
     return {
       isEditorActive: false,
       selectedCard: null,
-      selectedLinkType: null
+      selectedLinkType: null,
+      highlightedLinkId: null
     };
   },
   onToggleEditor: function() {
@@ -482,6 +492,9 @@ CardEditor = React.createFactory(React.createClass({
         isEditorActive: false
       });
     }
+  },
+  onRemoveLink: function(linkId) {
+    return this.props.onRemoveLink(linkId);
   },
   render: function() {
     var prevType;
@@ -556,28 +569,60 @@ CardEditor = React.createFactory(React.createClass({
       style: {
         background: 'none'
       }
-    }, prevType = '', this.props.linkedCards.map(function(card) {
-      return tr({
-        key: card.linkedCardId + "-" + card.linkTypeName
-      }, td({
-        style: {
-          textAlign: 'right',
-          verticalAlign: 'middle',
-          width: 140,
-          minWidth: 140,
-          paddingRight: 12
-        }
-      }, prevType !== card.linkTypeName ? prevType = card.linkTypeName : ''), td({}, a({
-        href: "/c/" + card.linkedCardId,
-        style: {
-          display: 'block',
-          width: '100%',
-          overflow: 'hidden',
-          height: '1.2rem',
-          textOverflow: 'ellipsis'
-        }
-      }, card.linkedCardName)));
-    })))));
+    }, prevType = '', this.props.linkedCards.map((function(_this) {
+      return function(card) {
+        return tr({
+          key: card.linkedCardId + "-" + card.linkTypeName,
+          onMouseEnter: function() {
+            return _this.setState({
+              highlightedLinkId: card.linkedCardId
+            });
+          },
+          onMouseLeave: function() {
+            if (card.linkedCardId === _this.state.highlightedLinkId) {
+              return _this.setState({
+                highlightedLinkId: null
+              });
+            }
+          }
+        }, td({
+          style: {
+            textAlign: 'right',
+            verticalAlign: 'middle',
+            width: 140,
+            minWidth: 140,
+            paddingRight: 12
+          }
+        }, prevType !== card.linkTypeName ? prevType = card.linkTypeName : ''), td({}, a({
+          href: "/c/" + card.linkedCardId,
+          style: {
+            paddingLeft: 4,
+            display: 'block',
+            width: '100%',
+            overflow: 'hidden',
+            height: '1.2rem',
+            textOverflow: 'ellipsis'
+          }
+        }, card.linkedCardName)), td({
+          style: {
+            textAlign: 'right',
+            verticalAlign: 'middle',
+            width: 20,
+            minWidth: 20
+          }
+        }, card.linkedCardId === _this.state.highlightedLinkId ? span({
+          className: 'icon-sm icon-close',
+          onMouseDown: function() {
+            console.log(card);
+            return _this.onRemoveLink(card.linkId);
+          },
+          style: {
+            color: 'salmon',
+            cursor: 'pointer'
+          }
+        }) : void 0));
+      };
+    })(this))))));
   }
 }));
 
@@ -22507,6 +22552,12 @@ addonEntry = {
                 return React.render(CardEditor(renderData), container);
               });
             }
+          },
+          onRemoveLink: function(linkId) {
+            return app.actions.onRemoveLink(currentCard, linkId).then(function(linkedCards) {
+              renderData.linkedCards = linkedCards;
+              return React.render(CardEditor(renderData), container);
+            });
           },
           linkedCards: app.helpers.getCardLinks(currentCard.id)
         };

@@ -55,6 +55,12 @@ addonEntry =
                 renderData.linkedCards = linkedCards
                 React.render CardEditor( renderData ), container
 
+          onRemoveLink: (linkId) ->
+            app.actions.onRemoveLink currentCard, linkId
+            .then (linkedCards) ->
+              renderData.linkedCards = linkedCards
+              React.render CardEditor( renderData ), container
+
           linkedCards: app.helpers.getCardLinks currentCard.id
 
         React.render CardEditor( renderData ), container
