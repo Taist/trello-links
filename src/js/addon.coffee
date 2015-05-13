@@ -14,40 +14,46 @@ addonEntry =
     DOMObserver = require './helpers/domObserver'
     app.elementObserver = new DOMObserver()
 
-    app.elementObserver.waitElement '.card-detail-window', (detailWindow) ->
+    app.exapi.getCompanyData('trelloLinks')
+    .then (trelloLinks) ->
+      app.helpers.setTrelloLinks trelloLinks
 
-      container = document.createElement 'div'
-      container.className = 'taist'
+      app.elementObserver.waitElement '.card-detail-window', (detailWindow) ->
 
-      insertAfter container, detailWindow.querySelector '.card-detail-data'
+        container = document.createElement 'div'
+        container.className = 'taist'
 
-      if matches = location.href.match /\/c\/([^\/]+)\//
-        currentCardId = matches[1]
-        currentCardName = detailWindow.querySelector('.js-card-title').innerText
-      currentCard = { id: currentCardId, value: currentCardName }
+        insertAfter container, detailWindow.querySelector '.card-detail-data'
 
-      renderData =
-        onChange: (query = '') ->
-          if query.length < 3
-            return Q.resolve []
+        if matches = location.href.match /\/c\/([^\/]+)\//
+          currentCardId = matches[1]
+          currentCardName = detailWindow.querySelector('.js-card-title').innerText
+        currentCard = { id: currentCardId, value: currentCardName }
 
-          url = "https://trello.com/1/search?query=#{query}"
-          url += '&partial=true&modelTypes=cards&card_board=true&card_list=true&card_stickers=true&elasticsearch=true'
+        renderData =
+          onChange: (query = '') ->
+            if query.length < 3
+              return Q.resolve []
 
-          Q.when $.ajax url
-          .then (result) ->
-            result.cards.map (card) -> { id: card.shortLink, value: card.name }
-          .catch (error) ->
-            console.log error
+            url = "https://trello.com/1/search?query=#{query}"
+            url += '&partial=true&modelTypes=cards&card_board=true&card_list=true&card_stickers=true&elasticsearch=true'
 
-        linkTypes: app.helpers.prepareLinkTypes()
+            Q.when $.ajax url
+            .then (result) ->
+              result.cards.map (card) -> { id: card.shortLink, value: card.name }
+            .catch (error) ->
+              console.log error
 
-        currentCard: currentCard
+          linkTypes: app.helpers.prepareLinkTypes()
 
-        onCreateLink: (card, linkType) ->
-          if currentCard
-            app.actions.onCreateLink currentCard, card, linkType
+          currentCard: currentCard
 
-      React.render CardEditor( renderData ), container
+          onCreateLink: (card, linkType) ->
+            if currentCard
+              app.actions.onCreateLink currentCard, card, linkType
+
+          linkedCards: app.helpers.getCardLinks currentCard.id
+
+        React.render CardEditor( renderData ), container
 
 module.exports = addonEntry

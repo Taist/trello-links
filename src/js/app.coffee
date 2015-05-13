@@ -4,26 +4,27 @@ require('react/lib/DOMProperty').ID_ATTRIBUTE_NAME = 'data-vrtl-reactid'
 
 extend = require 'react/lib/Object.assign'
 
-appData = {}
+appData =
+  trelloLinks: {}
 
-linkTypes = {
-  relates:
-    name: 'Relates'
-    outward: 'relates to'
-    inward: 'relates to'
-  duplicate:
-    name: 'Duplicate'
-    outward: 'duplicates'
-    inward: 'is duplicated by'
-  blocked:
-    name: 'Blocked'
-    outward: 'blocks'
-    inward: 'is blocked by'
-  cloners:
-    name: 'Cloners'
-    outward: 'clones'
-    inward: 'is cloned by'
-}
+  linkTypes:
+    relates:
+      name: 'Relates'
+      outward: 'relates to'
+      inward: 'relates to'
+    duplicate:
+      name: 'Duplicate'
+      outward: 'duplicates'
+      inward: 'is duplicated by'
+    blocked:
+      name: 'Blocked'
+      outward: 'blocks'
+      inward: 'is blocked by'
+    cloners:
+      name: 'Cloners'
+      outward: 'clones'
+      inward: 'is cloned by'
+
 
 app =
   api: null
@@ -75,9 +76,36 @@ app =
         console.log error
 
   helpers:
+    setTrelloLinks: (trelloLinks) ->
+      appData.trelloLinks = trelloLinks
+
+    getCardLinks: (cardId) ->
+      result = []
+      for id, link of appData.trelloLinks
+        direction = null
+        [ masterId, slaveId, linkType ] = id.split('-')
+
+        if masterId is cardId
+          direction = 'outward'
+          linkedCardId = slaveId
+          linkedCardName = link.slaveName
+
+        else if slaveId is cardId
+          direction = 'inward'
+          linkedCardId = masterId
+          linkedCardName = link.masterName
+
+        if direction
+          result.push
+            linkTypeName: appData.linkTypes[linkType][direction]
+            linkedCardId: linkedCardId
+            linkedCardName: linkedCardName
+
+      result
+
     prepareLinkTypes: () ->
       result = []
-      for type, link of linkTypes
+      for type, link of appData.linkTypes
         result.push { id: "#{type}.out", value: link.outward }
         if link.outward isnt link.inward
           result.push { id: "#{type}.in", value: link.inward }

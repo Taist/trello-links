@@ -1,5 +1,5 @@
 function init(){var require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var Q, app, appData, extend, linkTypes;
+var Q, app, appData, extend;
 
 Q = require('q');
 
@@ -7,28 +7,29 @@ require('react/lib/DOMProperty').ID_ATTRIBUTE_NAME = 'data-vrtl-reactid';
 
 extend = require('react/lib/Object.assign');
 
-appData = {};
-
-linkTypes = {
-  relates: {
-    name: 'Relates',
-    outward: 'relates to',
-    inward: 'relates to'
-  },
-  duplicate: {
-    name: 'Duplicate',
-    outward: 'duplicates',
-    inward: 'is duplicated by'
-  },
-  blocked: {
-    name: 'Blocked',
-    outward: 'blocks',
-    inward: 'is blocked by'
-  },
-  cloners: {
-    name: 'Cloners',
-    outward: 'clones',
-    inward: 'is cloned by'
+appData = {
+  trelloLinks: {},
+  linkTypes: {
+    relates: {
+      name: 'Relates',
+      outward: 'relates to',
+      inward: 'relates to'
+    },
+    duplicate: {
+      name: 'Duplicate',
+      outward: 'duplicates',
+      inward: 'is duplicated by'
+    },
+    blocked: {
+      name: 'Blocked',
+      outward: 'blocks',
+      inward: 'is blocked by'
+    },
+    cloners: {
+      name: 'Cloners',
+      outward: 'clones',
+      inward: 'is cloned by'
+    }
   }
 };
 
@@ -77,11 +78,42 @@ app = {
     }
   },
   helpers: {
-    prepareLinkTypes: function() {
-      var link, result, type;
+    setTrelloLinks: function(trelloLinks) {
+      return appData.trelloLinks = trelloLinks;
+    },
+    getCardLinks: function(cardId) {
+      var direction, id, link, linkType, linkedCardId, linkedCardName, masterId, ref, ref1, result, slaveId;
       result = [];
-      for (type in linkTypes) {
-        link = linkTypes[type];
+      ref = appData.trelloLinks;
+      for (id in ref) {
+        link = ref[id];
+        direction = null;
+        ref1 = id.split('-'), masterId = ref1[0], slaveId = ref1[1], linkType = ref1[2];
+        if (masterId === cardId) {
+          direction = 'outward';
+          linkedCardId = slaveId;
+          linkedCardName = link.slaveName;
+        } else if (slaveId === cardId) {
+          direction = 'inward';
+          linkedCardId = masterId;
+          linkedCardName = link.masterName;
+        }
+        if (direction) {
+          result.push({
+            linkTypeName: appData.linkTypes[linkType][direction],
+            linkedCardId: linkedCardId,
+            linkedCardName: linkedCardName
+          });
+        }
+      }
+      return result;
+    },
+    prepareLinkTypes: function() {
+      var link, ref, result, type;
+      result = [];
+      ref = appData.linkTypes;
+      for (type in ref) {
+        link = ref[type];
         result.push({
           id: type + ".out",
           value: link.outward
@@ -391,20 +423,21 @@ CustomSelect = React.createFactory(React.createClass({
 module.exports = CustomSelect;
 
 },{"react":162,"react/lib/DOMProperty":16}],5:[function(require,module,exports){
-var CardEditor, CustomSelect, React, a, div, h3, input, ref, span, table, tbody, td, tr;
+var CardEditor, CustomSelect, React, a, div, extend, h3, input, ref, span, table, tbody, td, tr;
 
 React = require('react');
 
 ref = React.DOM, div = ref.div, span = ref.span, h3 = ref.h3, a = ref.a, table = ref.table, tbody = ref.tbody, tr = ref.tr, input = ref.input;
 
+extend = require('react/lib/Object.assign');
+
 td = function() {
-  var props;
-  props = arguments[0];
-  if (props.style == null) {
-    props.style = {};
-  }
-  props.style.padding = 2;
-  props.style.border = 'none';
+  var defs;
+  defs = {
+    padding: 2,
+    border: 'none'
+  };
+  arguments[0].style = extend({}, defs, arguments[0].style);
   return React.DOM.td.apply(this, arguments);
 };
 
@@ -413,7 +446,7 @@ CustomSelect = require('../taist/customSelect');
 CardEditor = React.createFactory(React.createClass({
   getInitialState: function() {
     return {
-      isEditorActive: true,
+      isEditorActive: false,
       selectedCard: null,
       selectedLinkType: null
     };
@@ -480,7 +513,8 @@ CardEditor = React.createFactory(React.createClass({
       style: {
         textAlign: 'right',
         verticalAlign: 'middle',
-        width: 100
+        width: 140,
+        paddingRight: 12
       }
     }, 'This card'), td({}, CustomSelect({
       selectType: 'static',
@@ -489,7 +523,8 @@ CardEditor = React.createFactory(React.createClass({
     }))), tr({}, td({
       style: {
         textAlign: 'right',
-        verticalAlign: 'middle'
+        verticalAlign: 'middle',
+        paddingRight: 12
       }
     }, 'Card'), td({}, CustomSelect({
       selectType: 'search',
@@ -500,13 +535,33 @@ CardEditor = React.createFactory(React.createClass({
       className: 'primary confirm',
       value: 'Link cards',
       onMouseDown: this.onCreateLink
-    }))))) : void 0, div({}, 'Links will be here'));
+    }))))) : void 0, div({}, table({
+      style: {
+        width: '100%',
+        border: 'none'
+      }
+    }, tbody({
+      style: {
+        background: 'none'
+      }
+    }, this.props.linkedCards.map(function(card) {
+      return tr({}, td({
+        style: {
+          textAlign: 'right',
+          verticalAlign: 'middle',
+          width: 140,
+          paddingRight: 12
+        }
+      }, card.linkTypeName), td({}, a({
+        href: "/c/" + card.linkedCardId
+      }, card.linkedCardName)));
+    })))));
   }
 }));
 
 module.exports = CardEditor;
 
-},{"../taist/customSelect":4,"react":162}],6:[function(require,module,exports){
+},{"../taist/customSelect":4,"react":162,"react/lib/Object.assign":33}],6:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -22384,50 +22439,54 @@ addonEntry = {
     app.init(_taistApi);
     DOMObserver = require('./helpers/domObserver');
     app.elementObserver = new DOMObserver();
-    return app.elementObserver.waitElement('.card-detail-window', function(detailWindow) {
-      var container, currentCard, currentCardId, currentCardName, matches, renderData;
-      container = document.createElement('div');
-      container.className = 'taist';
-      insertAfter(container, detailWindow.querySelector('.card-detail-data'));
-      if (matches = location.href.match(/\/c\/([^\/]+)\//)) {
-        currentCardId = matches[1];
-        currentCardName = detailWindow.querySelector('.js-card-title').innerText;
-      }
-      currentCard = {
-        id: currentCardId,
-        value: currentCardName
-      };
-      renderData = {
-        onChange: function(query) {
-          var url;
-          if (query == null) {
-            query = '';
-          }
-          if (query.length < 3) {
-            return Q.resolve([]);
-          }
-          url = "https://trello.com/1/search?query=" + query;
-          url += '&partial=true&modelTypes=cards&card_board=true&card_list=true&card_stickers=true&elasticsearch=true';
-          return Q.when($.ajax(url)).then(function(result) {
-            return result.cards.map(function(card) {
-              return {
-                id: card.shortLink,
-                value: card.name
-              };
-            });
-          })["catch"](function(error) {
-            return console.log(error);
-          });
-        },
-        linkTypes: app.helpers.prepareLinkTypes(),
-        currentCard: currentCard,
-        onCreateLink: function(card, linkType) {
-          if (currentCard) {
-            return app.actions.onCreateLink(currentCard, card, linkType);
-          }
+    return app.exapi.getCompanyData('trelloLinks').then(function(trelloLinks) {
+      app.helpers.setTrelloLinks(trelloLinks);
+      return app.elementObserver.waitElement('.card-detail-window', function(detailWindow) {
+        var container, currentCard, currentCardId, currentCardName, matches, renderData;
+        container = document.createElement('div');
+        container.className = 'taist';
+        insertAfter(container, detailWindow.querySelector('.card-detail-data'));
+        if (matches = location.href.match(/\/c\/([^\/]+)\//)) {
+          currentCardId = matches[1];
+          currentCardName = detailWindow.querySelector('.js-card-title').innerText;
         }
-      };
-      return React.render(CardEditor(renderData), container);
+        currentCard = {
+          id: currentCardId,
+          value: currentCardName
+        };
+        renderData = {
+          onChange: function(query) {
+            var url;
+            if (query == null) {
+              query = '';
+            }
+            if (query.length < 3) {
+              return Q.resolve([]);
+            }
+            url = "https://trello.com/1/search?query=" + query;
+            url += '&partial=true&modelTypes=cards&card_board=true&card_list=true&card_stickers=true&elasticsearch=true';
+            return Q.when($.ajax(url)).then(function(result) {
+              return result.cards.map(function(card) {
+                return {
+                  id: card.shortLink,
+                  value: card.name
+                };
+              });
+            })["catch"](function(error) {
+              return console.log(error);
+            });
+          },
+          linkTypes: app.helpers.prepareLinkTypes(),
+          currentCard: currentCard,
+          onCreateLink: function(card, linkType) {
+            if (currentCard) {
+              return app.actions.onCreateLink(currentCard, card, linkType);
+            }
+          },
+          linkedCards: app.helpers.getCardLinks(currentCard.id)
+        };
+        return React.render(CardEditor(renderData), container);
+      });
     });
   }
 };

@@ -2,23 +2,22 @@ React = require 'react'
 
 { div, span, h3, a, table, tbody, tr, input } = React.DOM
 
+extend = require 'react/lib/Object.assign'
+
 td = () ->
-  props = arguments[0]
+  defs =
+    padding: 2
+    border: 'none'
 
-  unless props.style?
-    props.style = {}
-
-  props.style.padding = 2
-  props.style.border = 'none'
+  arguments[0].style = extend {}, defs, arguments[0].style
 
   React.DOM.td.apply @, arguments
-
 
 CustomSelect = require '../taist/customSelect'
 
 CardEditor = React.createFactory React.createClass
   getInitialState: ->
-    isEditorActive: true
+    isEditorActive: false
     selectedCard: null
     selectedLinkType: null
 
@@ -63,7 +62,13 @@ CardEditor = React.createFactory React.createClass
           tbody { style: background: 'none' },
 
             tr {},
-              td { style: textAlign: 'right', verticalAlign: 'middle', width: 100 }, 'This card'
+              td { style:
+                textAlign: 'right'
+                verticalAlign: 'middle'
+                width: 140
+                paddingRight: 12
+              },
+                'This card'
               td {},
                 CustomSelect {
                   selectType: 'static'
@@ -72,7 +77,7 @@ CardEditor = React.createFactory React.createClass
                 }
 
             tr {},
-              td { style: textAlign: 'right', verticalAlign: 'middle' }, 'Card'
+              td { style: textAlign: 'right', verticalAlign: 'middle', paddingRight: 12 }, 'Card'
               td {},
                 CustomSelect {
                   selectType: 'search'
@@ -90,6 +95,20 @@ CardEditor = React.createFactory React.createClass
                   onMouseDown: @onCreateLink
                 }
 
-      div {}, 'Links will be here'
+      div {},
+        table { style: width: '100%', border: 'none' },
+          tbody { style: background: 'none' },
+            @props.linkedCards.map (card) ->
+              tr {},
+                td { style:
+                  textAlign: 'right'
+                  verticalAlign: 'middle'
+                  width: 140
+                  paddingRight: 12
+                },
+                  card.linkTypeName
+                td {},
+                 a { href: "/c/#{card.linkedCardId}" }, card.linkedCardName
+
 
 module.exports = CardEditor
