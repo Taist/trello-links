@@ -1,8 +1,9 @@
 {
   "id": "trello-links",
   "siteName": "Trello",
-  "title": "Links",
+  "title": "Links between cards",
   "js": "addon.js",
-  "shortDescription": "Adds links for trello cards",
-  "siteRegexp": "trello\\.com"
+  "shortDescription": "Enables to set links between cards",
+  "siteRegexp": "trello\\.com",
+  "description": "./addon-description.md"
 }
