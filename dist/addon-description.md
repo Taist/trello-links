@@ -6,3 +6,7 @@ Usage
 -----
 * The "Card links" block appears inside a card - use it to set and display links to other cards
 
+Further development
+-------------------
+* Display linked cards in different lists
+* Need anything else? Write in the comments below
