@@ -84,7 +84,7 @@ app =
         console.log error
 
   helpers:
-    setTrelloLinks: (trelloLinks) ->
+    setTrelloLinks: (trelloLinks = {}) ->
       appData.trelloLinks = trelloLinks
 
     getCardLinks: (cardId) ->

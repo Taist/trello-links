@@ -88,6 +88,9 @@ app = {
   },
   helpers: {
     setTrelloLinks: function(trelloLinks) {
+      if (trelloLinks == null) {
+        trelloLinks = {};
+      }
       return appData.trelloLinks = trelloLinks;
     },
     getCardLinks: function(cardId) {
