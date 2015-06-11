@@ -79,6 +79,7 @@ CardEditor = React.createFactory React.createClass
                   selectType: 'static'
                   onSelect: @onSelectLinkType
                   options: @props.linkTypes
+                  placeholder: 'Select link type'
                 }
 
             tr {},
@@ -88,6 +89,7 @@ CardEditor = React.createFactory React.createClass
                   selectType: 'search'
                   onSelect: @onSelectCard
                   onChange: @props.onChange
+                  placeholder: 'Start typing to find a card'
                 }
 
             tr {},

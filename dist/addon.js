@@ -453,6 +453,7 @@ CustomSelect = React.createFactory(React.createClass({
       onChange: this.onChange,
       onMouseDown: this.onClickOnInput,
       readOnly: this.props.selectType === 'static' ? true : void 0,
+      placeholder: this.props.placeholder ? this.props.placeholder : void 0,
       style: {
         width: controlWidth,
         boxSizing: 'border-box',
@@ -631,7 +632,8 @@ CardEditor = React.createFactory(React.createClass({
     }, 'This card'), td({}, CustomSelect({
       selectType: 'static',
       onSelect: this.onSelectLinkType,
-      options: this.props.linkTypes
+      options: this.props.linkTypes,
+      placeholder: 'Select link type'
     }))), tr({}, td({
       style: {
         textAlign: 'right',
@@ -641,7 +643,8 @@ CardEditor = React.createFactory(React.createClass({
     }, 'Card'), td({}, CustomSelect({
       selectType: 'search',
       onSelect: this.onSelectCard,
-      onChange: this.props.onChange
+      onChange: this.props.onChange,
+      placeholder: 'Start typing to find a card'
     }))), tr({}, td({}), td({}, input({
       type: 'submit',
       className: 'primary confirm',

@@ -133,6 +133,8 @@ CustomSelect = React.createFactory React.createClass
 
           readOnly: true if @props.selectType is 'static'
 
+          placeholder: @props.placeholder if @props.placeholder
+
           style:
             width: controlWidth
             boxSizing: 'border-box'
