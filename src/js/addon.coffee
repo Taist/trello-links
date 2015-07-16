@@ -6,6 +6,8 @@ insertAfter = require './helpers/insertAfter'
 
 CardEditor = require './react/trello/cardEditor'
 
+container = null
+
 addonEntry =
   start: (_taistApi, entryPoint) ->
     window._app = app
@@ -67,5 +69,8 @@ addonEntry =
         renderData.linkedCards = app.helpers.getCardLinks currentCard.id
 
         React.render CardEditor( renderData ), container
+    .catch (error) ->
+      app.api.log "TAIST ADDON ERROR !!! TRELLO !!! #{error.stack.replace /\n/g, ' '}"
+      React.render CardEditor( { error } ), container
 
 module.exports = addonEntry

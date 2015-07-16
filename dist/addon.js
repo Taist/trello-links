@@ -527,11 +527,11 @@ CustomSelect = React.createFactory(React.createClass({
 module.exports = CustomSelect;
 
 },{"./awesomeIcons":4,"react":163,"react/lib/DOMProperty":17,"spin":164}],6:[function(require,module,exports){
-var CardEditor, CustomSelect, React, a, div, extend, h3, input, ref, span, table, tbody, td, tr;
+var CardEditor, CustomSelect, React, a, div, extend, h3, input, ref, span, table, tbody, td, textarea, tr;
 
 React = require('react');
 
-ref = React.DOM, div = ref.div, span = ref.span, h3 = ref.h3, a = ref.a, table = ref.table, tbody = ref.tbody, tr = ref.tr, input = ref.input;
+ref = React.DOM, div = ref.div, span = ref.span, h3 = ref.h3, a = ref.a, table = ref.table, tbody = ref.tbody, tr = ref.tr, input = ref.input, textarea = ref.textarea;
 
 extend = require('react/lib/Object.assign');
 
@@ -613,7 +613,9 @@ CardEditor = React.createFactory(React.createClass({
     }) : span({
       className: 'icon-sm icon-add',
       onClick: this.onToggleEditor
-    }))), this.state.isEditorActive ? table({
+    }))), this.state.isEditorActive ? this.props.error ? div({
+      className: 'card-detail-data u-gutter u-clearfix'
+    }, div({}, 'Sorry, an error occured. We know about that and are preparing the fix now. Meanwhile, please try to re-login to Trello - the error should go then.')) : table({
       style: {
         width: '100%',
         border: 'none'
@@ -650,7 +652,7 @@ CardEditor = React.createFactory(React.createClass({
       className: 'primary confirm',
       value: 'Link cards',
       onMouseDown: this.onCreateLink
-    }))))) : void 0, div({}, table({
+    }))))) : void 0, !this.props.error ? div({}, table({
       style: {
         width: '100%',
         border: 'none'
@@ -712,7 +714,7 @@ CardEditor = React.createFactory(React.createClass({
           }
         }))));
       };
-    })(this))))));
+    })(this))))) : void 0);
   }
 }));
 
@@ -22881,7 +22883,7 @@ merge(Spinner.prototype, {
 module.exports = Spinner;
 
 },{}],"addon":[function(require,module,exports){
-var CardEditor, Q, React, addonEntry, app, insertAfter;
+var CardEditor, Q, React, addonEntry, app, container, insertAfter;
 
 app = require('./app');
 
@@ -22893,6 +22895,8 @@ insertAfter = require('./helpers/insertAfter');
 
 CardEditor = require('./react/trello/cardEditor');
 
+container = null;
+
 addonEntry = {
   start: function(_taistApi, entryPoint) {
     var DOMObserver;
@@ -22903,7 +22907,7 @@ addonEntry = {
     return app.exapi.getCompanyData('trelloLinks').then(function(trelloLinks) {
       app.helpers.setTrelloLinks(trelloLinks);
       return app.elementObserver.waitElement('.card-detail-window', function(detailWindow) {
-        var container, currentCard, currentCardId, currentCardName, matches, renderData;
+        var currentCard, currentCardId, currentCardName, matches, renderData;
         container = document.createElement('div');
         container.className = 'taist';
         insertAfter(container, detailWindow.querySelector('.card-detail-data'));
@@ -22959,6 +22963,11 @@ addonEntry = {
         renderData.linkedCards = app.helpers.getCardLinks(currentCard.id);
         return React.render(CardEditor(renderData), container);
       });
+    })["catch"](function(error) {
+      app.api.log("TAIST ADDON ERROR !!! TRELLO !!! " + (error.stack.replace(/\n/g, ' ')));
+      return React.render(CardEditor({
+        error: error
+      }), container);
     });
   }
 };
