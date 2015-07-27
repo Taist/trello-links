@@ -4,6 +4,6 @@
   "title": "Links (dependencies) between cards",
   "js": "addon.js",
   "shortDescription": "Enables to set links of different types between cards - dependencies, references, etc.",
-  "siteRegexp": "trello\\.com",
+  "siteRegexp": "^(www\\.)?trello\\.com",
   "description": "./addon-description.md"
 }
